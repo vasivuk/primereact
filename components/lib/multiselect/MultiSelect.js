@@ -1,7 +1,7 @@
 import * as React from 'react';
 import PrimeReact, { FilterService, PrimeReactContext, localeOption } from '../api/Api';
 import { useHandleStyle } from '../componentbase/ComponentBase';
-import { useMergeProps, useMountEffect, useOverlayListener, useUnmountEffect, useUpdateEffect } from '../hooks/Hooks';
+import { useDebounce, useMergeProps, useMountEffect, useOverlayListener, useUnmountEffect, useUpdateEffect } from '../hooks/Hooks';
 import { ChevronDownIcon } from '../icons/chevrondown';
 import { SpinnerIcon } from '../icons/spinner';
 import { TimesIcon } from '../icons/times';
@@ -19,7 +19,7 @@ export const MultiSelect = React.memo(
         const props = MultiSelectBase.getProps(inProps, context);
         const [focusedOptionIndex, setFocusedOptionIndex] = React.useState(null);
         const [clicked, setClicked] = React.useState(false);
-        const [filterState, setFilterState] = React.useState('');
+        const [filterValue, filterState, setFilterState] = useDebounce('', props.filterDelay || 0);
         const [startRangeIndex, setStartRangeIndex] = React.useState(-1);
         const [focusedState, setFocusedState] = React.useState(false);
         const [overlayVisibleState, setOverlayVisibleState] = React.useState(props.inline);
@@ -948,9 +948,6 @@ export const MultiSelect = React.memo(
         };
 
         const onClearIconKeyDown = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
             switch (event.code) {
                 case 'Space':
                 case 'NumpadEnter':
@@ -960,6 +957,8 @@ export const MultiSelect = React.memo(
                     }
 
                     updateModel(event, [], []);
+                    event.preventDefault();
+                    event.stopPropagation();
                     break;
             }
         };
@@ -1162,7 +1161,7 @@ export const MultiSelect = React.memo(
                         {...props}
                         onClick={onPanelClick}
                         onOverlayHide={hide}
-                        filterValue={filterState}
+                        filterValue={filterValue}
                         focusedOptionIndex={focusedOptionIndex}
                         onFirstHiddenFocus={onFirstHiddenFocus}
                         onLastHiddenFocus={onLastHiddenFocus}
